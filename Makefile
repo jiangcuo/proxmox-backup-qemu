@@ -22,6 +22,26 @@ CARGO_BUILD_ARGS += --release
 TARGETDIR := target/release
 endif
 
+
+ifeq ($(ARCH), riscv64)
+RUST_TARGET=riscv64gc-unknown-linux-gnu
+endif 
+
+ifeq ($(ARCH), arm64)
+RUST_TARGET=aarch64-unknown-linux-gnu
+endif
+
+ifeq ($(ARCH), loong64)
+RUST_TARGET=loongarch64-unknown-linux-gnu
+endif
+
+ifeq ($(ARCH), amd64)
+RUST_TARGET=x86_64-unknown-linux-gnu
+endif
+
+CARGO=/usr/bin/cargo
+
+
 .PHONY: all build
 # source target
 all: build
@@ -29,12 +49,12 @@ all: build
 # source target
 build: $(TARGETDIR)/libproxmox_backup_qemu.so
 $(TARGETDIR)/libproxmox_backup_qemu.so: Cargo.toml src/
-	cargo build $(CARGO_BUILD_ARGS)
+	$(CARGO) build $(CARGO_BUILD_ARGS) --target ${RUST_TARGET}
 
 # source / packaging target
 .PHONY: install
-install: $(TARGETDIR)/libproxmox_backup_qemu.so
-	install -D -m 0755 $(TARGETDIR)/libproxmox_backup_qemu.so $(DESTDIR)/usr/lib/libproxmox_backup_qemu.so.0
+install:
+	install -D -m 0755  target/${RUST_TARGET}/release/libproxmox_backup_qemu.so $(DESTDIR)/usr/lib/libproxmox_backup_qemu.so.0
 	cd $(DESTDIR)/usr/lib/; ls *; ln -s libproxmox_backup_qemu.so.0 libproxmox_backup_qemu.so
 
 .PHONY: test
@@ -64,7 +84,7 @@ sbuild: $(DSC)
 .PHONY: deb dsc
 deb: $(DEBS)
 $(DEBS) &: $(BUILDDIR)
-	cd $(BUILDDIR); dpkg-buildpackage -b -us -uc
+	cd $(BUILDDIR); dpkg-buildpackage -b -us -uc -a$(ARCH) -d
 	lintian $(DEBS)
 
 proxmox-backup-qemu.h: $(TARGETDIR)/libproxmox_backup_qemu.so

@@ -99,6 +99,7 @@ Build-Depends: cargo:native,
                librust-xdg-2+default-dev (>= 2.2-~~),
                librust-zstd-0.13+default-dev,
                librust-zstd-safe-7+default-dev,
+	       libsystemd-dev,
                patchelf,
 Standards-Version: 4.6.2
 Homepage: https://www.proxmox.com

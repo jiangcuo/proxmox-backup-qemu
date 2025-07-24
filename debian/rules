@@ -7,6 +7,27 @@ include /usr/share/dpkg/pkg-info.mk
 
 export BUILD_MODE=release
 
+CARGO=/usr/bin/cargo
+
+ARCH:=$(shell dpkg-architecture -qDEB_HOST_ARCH)
+
+ifeq ($(ARCH), riscv64)
+RUST_TARGET=riscv64gc-unknown-linux-gnu
+endif 
+
+ifeq ($(ARCH), arm64)
+RUST_TARGET=aarch64-unknown-linux-gnu
+endif
+
+ifeq ($(ARCH), loong64)
+RUST_TARGET=loongarch64-unknown-linux-gnu
+endif
+
+ifeq ($(ARCH), amd64)
+RUST_TARGET=x86_64-unknown-linux-gnu
+endif
+
+
 %:
 	dh $@
 
@@ -19,3 +40,9 @@ override_dh_strip:
 	dh_strip
 	debian/scripts/elf-strip-unused-dependencies.sh \
 	 "debian/libproxmox-backup-qemu0/usr/lib/libproxmox_backup_qemu.so.0"
+
+override_dh_auto_clean:
+	echo ok
+
+override_dh_auto_build:
+	 ${CARGO} build --release --target ${RUST_TARGET}
